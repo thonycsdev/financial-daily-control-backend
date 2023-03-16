@@ -1,3 +1,4 @@
+using API.Extensions;
 using Infra.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IConfiguration>();
 builder.Services.AddDbContext<DataContext>();
+builder.Services.AddServices();
+
 
 var app = builder.Build();
 
