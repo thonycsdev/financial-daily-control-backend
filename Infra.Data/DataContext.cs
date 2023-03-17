@@ -11,20 +11,15 @@ namespace Infra.Data
     public class DataContext : DbContext
     {
         public DbSet<Expense> Expenses { get; set; }
-        private readonly IConfiguration _configuration;
 
         public DataContext()
         {
 
         }
-        public DataContext(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("DataSource=app.db; cache=Shared");
+            optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=FinanceDaily;User Id=postgres;Password=postgres;");
         }
     }
 }
