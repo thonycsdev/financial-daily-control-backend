@@ -22,33 +22,47 @@ namespace Business.Services
         }
         public async Task<ExpenseResponse> CreateExpense(ExpenseRequest viewModel)
         {
-            if (viewModel.Name == null || viewModel.Price == null || viewModel.purchaseDate == null)
-            {
-                throw new ArgumentNullException(nameof(viewModel));
-            }
+            ValidateViewModel(viewModel);
+
             var entity = _mapper.Map<Expense>(viewModel);
-             await _repository.CreateAsync(entity);
+            await _repository.CreateAsync(entity);
             return _mapper.Map<ExpenseResponse>(entity);
         }
+
 
         public Task<ExpenseResponse> GetExpense(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<ExpenseResponse>> GetExpenses()
+        public async Task<IEnumerable<ExpenseResponse>> GetExpenses()
         {
-            throw new NotImplementedException();
+            var expenses = await _repository.GetManyAsync(x => x.Name != null);
+            return _mapper.Map<List<ExpenseResponse>>(expenses);
         }
 
-        public Task<ExpenseResponse> RemoveExpense(int expenseId)
+        public async Task<ExpenseResponse> RemoveExpense(int expenseId)
         {
-            throw new NotImplementedException();
+            var expense = await _repository.GetAsync(x => x.Id == expenseId);
+            await _repository.DeleteAsync(expense);
+            return _mapper.Map<ExpenseResponse>(expense);
         }
 
-        public Task<ExpenseResponse> UpdateExpense(ExpenseRequest viewModel, int expenseId)
+        public async Task<ExpenseResponse> UpdateExpense(ExpenseRequest viewModel, int expenseId)
         {
-            throw new NotImplementedException();
+            var expense = await _repository.GetAsync(x => x.Id == expenseId);
+            expense.Name = viewModel.Name;
+            expense.Description = viewModel.Description;
+            expense.Price = viewModel.Price;
+            expense.purchaseDate = viewModel.purchaseDate;
+
+            await _repository.UpdateAsync(expense);
+            return _mapper.Map<ExpenseResponse>(expense);
+        }
+        private static void ValidateViewModel(ExpenseRequest viewModel)
+        {
+            if (viewModel.Name is null || viewModel.Description is null || viewModel.Price == 0)
+                throw new ArgumentNullException(nameof(viewModel));
         }
     }
 }

@@ -19,10 +19,14 @@ namespace Tests.ExpensesTests
     {
         private readonly IMapper _mapper;
         private readonly Mock<IExpenseRepository> _expenseRepositoryMock;
+        private ExpenseRequest _request;
+        private readonly ExpenseService _service;
         public ExpenseTest()
         {
             _mapper = new MapperConfiguration(x => x.AddProfile(new AutoMapperConfig())).CreateMapper();
-            _expenseRepositoryMock= new Mock<IExpenseRepository>();
+            _expenseRepositoryMock = new Mock<IExpenseRepository>();
+            _request = new Fixture().Create<ExpenseRequest>();
+            _service = new ExpenseService(_expenseRepositoryMock.Object, _mapper);
             SetupMocks();
         }
 
@@ -31,7 +35,7 @@ namespace Tests.ExpensesTests
             _expenseRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<Expense>())).ReturnsAsync(It.IsAny<Expense>());
 
         }
-        
+
 
         [Fact]
         public async void GivenAExpenseMustReturnItsResponseWithTheName()
@@ -40,14 +44,21 @@ namespace Tests.ExpensesTests
             var expectedResult = new Fixture().Create<ExpenseResponse>();
             expectedResult.Name = expectedExpenseName;
 
-            var request = new Fixture().Create<ExpenseRequest>();
-            request.Name = null;
+            var request = _request;
+            request.Name = expectedExpenseName;
 
-            var service = new ExpenseService(_expenseRepositoryMock.Object, _mapper);
-            await Assert.ThrowsAsync<ArgumentNullException>(async () =>  await service.CreateExpense(request));
-            //var result = await service.CreateExpense(request);
+            var result = await _service.CreateExpense(request);
 
-            //Assert.Equal(expectedResult.Name, result.Name);
+            Assert.Equal(expectedResult.Name, result.Name);
+        }
+
+        [Fact]
+        public async void GiverANullValueForNameOrDescriptionShouldThrowArgumentExp()
+        {
+            var request = _request;
+            request.Price = 0;
+
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await _service.CreateExpense(request));
         }
     }
 }
